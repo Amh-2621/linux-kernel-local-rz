@@ -1,2 +1,3 @@
-# linux-kernel-local-rz
-local repo of rz-linux-kernel
+# calixto-rz-linux
+Linux Kernel for Renesas RZ series processors
+
