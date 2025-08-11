@@ -1,0 +1,514 @@
+// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+/*
+ * Device Tree Source for the RZ/G3E SMARC Carrier-II Board.
+ *
+ * Copyright (C) 2024 Renesas Electronics Corp.
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/rzv2h-pinctrl.h>
+#include <dt-bindings/interrupt-controller/irqc-rzg2l.h>
+#include <dt-bindings/soc/renesas,rsci.h>
+
+/*
+ * Please change the corresponding selection to below Macros:
+ *
+ * SW_SDIO_M2E:
+ *	0 - Smarc SDIO signal is connected to uSD1
+ *	1 - Smarc SDIO signal is connected to M.2 Key E connector
+ *
+ * SW_SER0_PMOD:
+ *	0 - Smarc SER0 signals connect to M.2 Key E connector, SER2 signals are unconnected
+ *	1 - Smarc SER0 signals connect to PMOD, SER2 signals connected to M.2 Key E connector
+ *
+ * SW_GPIO_CAN_PMOD states:
+ *
+ * Please change the corresponding selection to below Macros:
+ *
+ * SW_GPIO8_CAN0_STB:
+ *	0 - Connect to GPIO8 PMOD (default)
+ *	1 - Connect to CAN0 transceiver STB pin
+ *
+ * SW_GPIO9_CAN1_STB:
+ *	0 - Connect to GPIO9 PMOD (default)
+ *	1 - Connect to CAN1 transceiver STB pin
+ *
+ * Please change the corresponding selection to below Macros:
+ *
+ * RSPI0_RSCI8_SPI_SEL:
+ *	0 - RSPI0 (default)
+ *	1 - RSCI_SPI8
+ */
+
+/ {
+	aliases {
+		serial0 = &scif;
+#if (!SW_LCD_EN)
+		serial1 = &sci4;
+#if (RSCI9_SEL == RSCI_UART)
+		serial2 = &sci9;
+#endif
+#endif
+#if ((SW_SER0_PMOD) && (!SW_SER2_EN))
+		serial3 = &sci2;
+#endif
+#if (!SW_SDIO_M2E)
+		mmc1 = &sdhi1;
+#endif
+	};
+#if (!SW_SDIO_M2E)
+	vmmc_sdhi1: regulator-vcc-sdhi1 {
+		compatible = "regulator-fixed";
+
+		regulator-name = "SDHI1 Vmmc";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+
+		gpios = <&pinctrl RZV2H_GPIO(1, 6) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	vccq_sdhi1: regulator-vccq-sdhi1 {
+		compatible = "regulator-gpio";
+
+		regulator-name = "SDHI1 VccQ";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <3300000>;
+
+		gpios = <&pinctrl RZV2H_GPIO(1, 5) GPIO_ACTIVE_HIGH>;
+
+		gpios-states = <0>;
+		states = <3300000 0 1800000 1>;
+	};
+#endif
+
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		pinctrl-0 = <&icu_pins>;
+		pinctrl-names = "default";
+
+		nmi {
+		        interrupt-parent = <&icu>;
+		        interrupts = <0 IRQ_TYPE_EDGE_FALLING>;
+		        linux,code = <4>;
+		        label = "NMI";
+		        wakeup-source;
+		};
+	};
+
+	ov5645_fixed_clk: osc25250-clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <24000000>;
+	};
+
+	ov5645_vdddo_1v8: 1p8v {
+		compatible = "regulator-fixed";
+		regulator-name = "camera_vdddo";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		regulator-always-on;
+	};
+
+	ov5645_vdda_2v8: 2p8v {
+		compatible = "regulator-fixed";
+		regulator-name = "camera_vdda";
+		regulator-min-microvolt = <2800000>;
+		regulator-max-microvolt = <2800000>;
+		regulator-always-on;
+	};
+
+	ov5645_vddd_1v5: 1p5v {
+		compatible = "regulator-fixed";
+		regulator-name = "camera_vddd";
+		regulator-min-microvolt = <1500000>;
+		regulator-max-microvolt = <1500000>;
+		regulator-always-on;
+	};
+
+};
+
+&pinctrl {
+#if ((!SW_LCD_EN) && (SW_GPIO8_CAN0_STB))
+	can0-stb-hog {
+		gpio-hog;
+		gpios = <RZV2H_GPIO(5, 4) GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "can0_stb";
+	};
+#endif
+
+#if ((!SW_LCD_EN) && (SW_GPIO9_CAN1_STB))
+	can1-stb-hog {
+		gpio-hog;
+		gpios = <RZV2H_GPIO(5, 5) GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "can1_stb";
+	};
+#endif
+
+	canfd_pins: canfd {
+#if (!SW_PDM_EN)
+		can1_pins: can1 {
+			pinmux = <RZV2H_PORT_PINMUX(L, 2, 3)>, /* RX */
+				 <RZV2H_PORT_PINMUX(L, 3, 3)>; /* TX */
+		};
+#endif
+
+#if (!SW_LCD_EN)
+		can4_pins: can4 {
+			pinmux = <RZV2H_PORT_PINMUX(5, 2, 3)>, /* RX */
+				 <RZV2H_PORT_PINMUX(5, 3, 3)>; /* TX */
+		};
+#endif
+	};
+
+#if (!SW_SDIO_M2E)
+	sdhi1_pins: sd1 {
+		sd1_mux {
+			pinmux = <RZV2H_PORT_PINMUX(1, 4, 8)>; /* QSD1_CD */
+		};
+
+		sd1_data {
+			pinmux = <RZV2H_PORT_PINMUX(G, 2, 1)>, /* QSD1_DAT0 */
+				 <RZV2H_PORT_PINMUX(G, 3, 1)>, /* QSD1_DAT1 */
+				 <RZV2H_PORT_PINMUX(G, 4, 1)>, /* QSD1_DAT2 */
+				 <RZV2H_PORT_PINMUX(G, 5, 1)>; /* QSD1_DAT3 */
+		};
+
+		sd1_ctrl {
+			pinmux = <RZV2H_PORT_PINMUX(G, 0, 1)>, /* QSD1_CLK */
+				 <RZV2H_PORT_PINMUX(G, 1, 1)>; /* QSD1_CMD */
+		};
+	};
+#endif
+
+#if (!SW_LCD_EN)
+	sci4_pins: sci4 {
+		pinmux = <RZV2H_PORT_PINMUX(7, 7, 5)>, /* SCI4_TXD_MOSI_SDA */
+			 <RZV2H_PORT_PINMUX(7, 6, 5)>; /* SCI4_RXD_MISO_SCL */
+		bias-pull-up;
+	};
+
+#if (RSCI9_SEL == RSCI_UART)
+	sci9_pins: sci9 {
+		pinmux = <RZV2H_PORT_PINMUX(8, 3, 5)>, /* SCI9_TXD_MOSI_SDA */
+			 <RZV2H_PORT_PINMUX(8, 2, 5)>; /* SCI9_RXD_MISO_SCL */
+		bias-pull-up;
+	};
+#elif (RSCI9_SEL == RSCI_I2C)
+	rsci_i2c9_pins: rsci_i2c9 {
+		pinmux = <RZV2H_PORT_PINMUX(6, 6, 5)>, /* SCI9_TXD_MOSI_SDA */
+			 <RZV2H_PORT_PINMUX(6, 5, 5)>; /* SCI9_RXD_MISO_SCL */
+		drive-open-drain = <1>;
+	};
+#else
+	master_sci9_pins: master_sci9 {
+		pinmux = <RZV2H_PORT_PINMUX(6, 6, 5)>, /* SCI9_TXD_MOSI_SDA */
+			 <RZV2H_PORT_PINMUX(6, 5, 5)>, /* SCI9_RXD_MISO_SCL */
+			 <RZV2H_PORT_PINMUX(8, 4, 5)>; /* SCI9_SCLK */
+	};
+
+	slave_sci9_pins: slave_sci9 {
+		pinmux = <RZV2H_PORT_PINMUX(6, 6, 5)>, /* SCI9_TXD_MOSI_SDA */
+			 <RZV2H_PORT_PINMUX(6, 5, 5)>, /* SCI9_RXD_MISO_SCL */
+			 <RZV2H_PORT_PINMUX(8, 4, 5)>, /* SCI9_SCLK */
+			 <RZV2H_PORT_PINMUX(8, 5, 5)>; /* SCI9_SSL */
+	};
+#endif
+#endif
+
+#if ((SW_SER0_PMOD) && (!SW_SER2_EN))
+	sci2_pins: sci2 {
+		pinmux = <RZV2H_PORT_PINMUX(1, 1, 1)>, /* SCI2_TXD_MOSI_SDA */
+			 <RZV2H_PORT_PINMUX(1, 0, 1)>; /* SCI2_RXD_MISO_SCL */
+		bias-pull-up;
+	};
+#endif
+
+#if (I2C1_GPT_SEL)
+	gpt0_1_pins: gpt0_1 {
+			pinmux = <RZV2H_PORT_PINMUX(3, 2, 10)>,
+				 <RZV2H_PORT_PINMUX(3, 3, 10)>;
+	};
+
+	poega_pins: poega {
+                        pinmux = <RZV2H_PORT_PINMUX(7, 2, 14)>;
+        };
+#endif
+
+	icu_pins: icu {
+		nmi {
+			pinmux = <RZV2H_PORT_PINMUX(S, 0, 0)>; /* NMI */
+		};
+	};
+
+	i2c0_pins: i2c0 {
+			pinmux = <RZV2H_PORT_PINMUX(D, 4, 4)>, /* SCL */
+				 <RZV2H_PORT_PINMUX(D, 5, 4)>; /* SDA */
+	};
+
+	pcie0_pins: pcie0 {
+		pinmux = <RZV2H_PORT_PINMUX(G, 7, 1)>; /* PCIE_SLOT_RST */
+	};
+
+	usb20_pins: usb20 {
+		pinmux = <RZV2H_PORT_PINMUX(0, 1, 12)>, /* VBUS */
+			 <RZV2H_PORT_PINMUX(0, 0, 12)>; /* OVC */
+	};
+
+	usb21_pins: usb21 {
+		pinmux = <RZV2H_PORT_PINMUX(K, 3, 12)>, /* VBUS */
+			 <RZV2H_PORT_PINMUX(G, 6, 12)>; /* OVC */
+	};
+
+	usb3_pins: usb3 {
+		pinmux = <RZV2H_PORT_PINMUX(4, 1, 12)>, /* VBUS */
+			 <RZV2H_PORT_PINMUX(4, 0, 12)>; /* OVR */
+	};
+
+#if (!RSPI0_RSCI8_SPI_SEL)
+	spi0_pins: spi0 {
+		pinmux = <RZV2H_PORT_PINMUX(M, 4, 2)>, /* MISOA */
+			 <RZV2H_PORT_PINMUX(M, 5, 2)>, /* MOSIA */
+			 <RZV2H_PORT_PINMUX(M, 7, 2)>, /* SSLA0 */
+			 <RZV2H_PORT_PINMUX(M, 6, 2)>; /* RSPCKA */
+	};
+#else
+	master_sci8_pins: master_sci8 {
+		pinmux = <RZV2H_PORT_PINMUX(M, 5, 5)>, /* SCI8_TXD_MOSI_SDA */
+			 <RZV2H_PORT_PINMUX(M, 4, 5)>, /* SCI8_RXD_MISO_SCL */
+			 <RZV2H_PORT_PINMUX(M, 6, 5)>; /* SCI8_SCLK */
+	};
+#endif
+};
+
+&scif {
+	status = "okay";
+};
+
+#if (!RSPI0_RSCI8_SPI_SEL)
+&spi0 {
+	pinctrl-0 = <&spi0_pins>;
+	pinctrl-names = "default";
+
+	status = "okay";
+};
+#else
+&rsci_spi8 {
+	pinctrl-0 = <&master_sci8_pins>;
+	pinctrl-names = "master";
+	status = "okay";
+
+	/* Using cs-gpios property when is master mode */
+	cs-gpios = <&pinctrl RZV2H_GPIO(M, 7) GPIO_ACTIVE_HIGH>;
+};
+#endif
+
+#if (!SW_LCD_EN)
+&sci4 {
+	pinctrl-0 = <&sci4_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+#if (RSCI9_SEL == RSCI_UART)
+&sci9 {
+	pinctrl-0 = <&sci9_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+#elif (RSCI9_SEL == RSCI_I2C)
+&rsci_i2c9 {
+	pinctrl-0 = <&rsci_i2c9_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+#else
+&rsci_spi9 {
+	pinctrl-0 = <&master_sci9_pins>;
+	pinctrl-1 = <&slave_sci9_pins>;
+	pinctrl-names = "master", "slave";
+	status = "okay";
+
+	/* Using cs-gpios property when is master mode */
+	cs-gpios = <&pinctrl RZV2H_GPIO(6, 4) GPIO_ACTIVE_HIGH>;
+};
+#endif
+#endif
+
+#if ((SW_SER0_PMOD) && (!SW_SER2_EN))
+&sci2 {
+	pinctrl-0 = <&sci2_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+#endif
+
+#if (I2C1_GPT_SEL)
+&gpt0_1 {
+        pinctrl-0 = <&gpt0_1_pins>;
+        pinctrl-names = "default";
+        channel = "both_AB";
+	poeg = <&poega>;
+        status = "okay";
+};
+
+&poega {
+        pinctrl-0 = <&poega_pins>;
+        pinctrl-names = "default";
+        status = "okay";
+};
+#endif
+
+#if (!SW_SDIO_M2E)
+&sdhi1 {
+	pinctrl-0 = <&sdhi1_pins>;
+	pinctrl-1 = <&sdhi1_pins>;
+	pinctrl-names = "default", "state_uhs";
+
+	vmmc-supply = <&vmmc_sdhi1>;
+	vqmmc-supply = <&vccq_sdhi1>;
+
+	bus-width = <4>;
+	sd-uhs-sdr50;
+	sd-uhs-sdr104;
+
+	status = "okay";
+
+	/delete-node/ vqmmc_regulator;
+};
+#endif
+
+&i2c0 {
+	pinctrl-0 = <&i2c0_pins>;
+	pinctrl-names = "default";
+
+	status = "okay";
+
+	ov5645_csi2: ov5645_csi2@3c {
+		compatible = "ovti,ov5645";
+		reg = <0x3c>;
+		clocks = <&ov5645_fixed_clk>;
+		clock-frequency = <24000000>;
+		vdddo-supply = <&ov5645_vdddo_1v8>;
+		vdda-supply = <&ov5645_vdda_2v8>;
+		vddd-supply = <&ov5645_vddd_1v5>;
+		enable-gpios = <&pinctrl RZV2H_GPIO(D, 6) GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&pinctrl RZV2H_GPIO(D, 7) GPIO_ACTIVE_LOW>;
+
+		port {
+			ov5645_to_csi2: endpoint {
+				clock-lanes = <0>;
+				data-lanes = <1 2>;
+				remote-endpoint = <&csi2_in>;
+			};
+		};
+	};
+};
+
+&cru {
+	status = "okay";
+};
+
+&csi2 {
+	status = "okay";
+
+	ports {
+		port {
+			csi2_in: endpoint {
+				clock-lanes = <0>;
+				data-lanes = <1 2>;
+				remote-endpoint = <&ov5645_to_csi2>;
+			};
+		};
+	};
+};
+
+&canfd {
+#if ((!SW_PDM_EN) || (!SW_LCD_EN))
+	pinctrl-0 = <&canfd_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+#endif
+
+#if (!SW_PDM_EN)
+	channel1 {
+		status = "okay";
+	};
+#endif
+
+#if (!SW_LCD_EN)
+	channel4 {
+		status = "okay";
+	};
+#endif
+};
+
+&ohci0 {
+	memory-region = <&global_cma>;
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&ohci1 {
+	memory-region = <&global_cma>;
+	status = "okay";
+};
+
+&ehci0 {
+	memory-region = <&global_cma>;
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&ehci1 {
+	memory-region = <&global_cma>;
+	status = "okay";
+};
+
+&hsusb {
+	dr_mode = "otg";
+	status = "okay";
+};
+
+&usb2_phy0 {
+	pinctrl-0 = <&usb20_pins>;
+	pinctrl-names = "default";
+
+	status = "okay";
+};
+
+&usb2_phy1 {
+	pinctrl-0 = <&usb21_pins>;
+	pinctrl-names = "default";
+
+	status = "okay";
+};
+
+&usb20phyrst {
+	status = "okay";
+};
+
+&usb21phyrst {
+	status = "okay";
+};
+
+&xhci {
+	pinctrl-0 = <&usb3_pins>;
+	pinctrl-names = "default";
+
+	memory-region = <&global_cma>;
+	status = "okay";
+};
+
+&usb3_phy {
+	status = "okay";
+};
+
+&pcie0 {
+	status = "okay";
+	pinctrl-0 = <&pcie0_pins>;
+	pinctrl-names = "default";
+};

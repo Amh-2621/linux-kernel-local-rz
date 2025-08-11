@@ -1,0 +1,66 @@
+// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+/*
+ * Device Tree Source for the RZ/G3E SMARC EVK board
+ *
+ * Copyright (C) 2024 Renesas Electronics Corp.
+ */
+
+/dts-v1/;
+/* Switch selection settings */
+#define SW_SD0_DEV_SEL			0
+#define SW_SDIO_M2E			0
+#define SW_LCD_EN			0
+#define SW_SER0_PMOD			0
+#define SW_SER2_EN			0
+#define SW_PDM_EN			0
+#define SW_GPIO8_CAN0_STB		0
+#define SW_GPIO9_CAN1_STB		0
+#define SW_HDMI_EN			0
+
+/* Mode selection settings */
+#define RSPI0_RSCI8_SPI_SEL		0
+
+/*
+ * RSCI9_SEL mode:
+ * 0 - RSCI9_UART (default)
+ * 1 - RSCI9_I2C
+ * 2 - RSCI9_SPI
+ */
+#define RSCI9_SEL			0
+
+#if (RSCI9_SEL != 0 && RSCI9_SEL != 1 && RSCI9_SEL != 2)
+#error "Cannot set mode for RSCI9"
+#endif
+
+/*
+ * I2C1 and GPT (PMOD) selection
+ * 0 - I2C1
+ * 1 - GPT0_1 on PMOD0
+ */
+#define I2C1_GPT_SEL			0
+
+/*
+ * Display support selection:
+ * 0 - disable display selection support
+ * 1 - enable display selection support
+ * for:
+ * - MIPI DSI: RZG3E_SMARC_MIPI_DSI_ENABLE
+ * - LVDS: RZG3E_SMARC_LVDS_ENABLE
+ * - Parallel RGB: SW_LCD_EN from above switch selection settings
+ */
+#define RZG3E_SMARC_MIPI_DSI_ENABLE	1
+#define RZG3E_SMARC_LVDS_ENABLE		0
+
+/* Only maximum 2 display selections are enabled at the same time */
+#if (RZG3E_SMARC_MIPI_DSI_ENABLE & RZG3E_SMARC_LVDS_ENABLE & SW_LCD_EN)
+#error "Only maximum 2 display selections are enabled at the same time"
+#endif
+
+
+#include "rzg3e-smarc-common.dtsi"
+#if (RZG3E_SMARC_LVDS_ENABLE)
+#include "rzg3e-smarc-lvds.dtsi"
+#endif
+#if (SW_LCD_EN)
+#include "rzg3e-smarc-rgb.dtsi"
+#endif
