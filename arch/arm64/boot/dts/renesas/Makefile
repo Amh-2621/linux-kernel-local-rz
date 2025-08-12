@@ -79,10 +79,17 @@ dtb-$(CONFIG_ARCH_R8A77961) += r8a779m3-ulcb-kf.dtb
 dtb-$(CONFIG_ARCH_R8A77965) += r8a779m5-salvator-xs.dtb
 
 dtb-$(CONFIG_ARCH_R9A07G043) += r9a07g043u11-smarc.dtb
+dtb-$(CONFIG_ARCH_R9A07G043) += rzg2ul-calixto-tiny_1GB.dtb
+dtb-$(CONFIG_ARCH_R9A07G043) += rzg2ul-calixto-tiny_256MB.dtb
+dtb-$(CONFIG_ARCH_R9A07G043) += rzg2ul-calixto-tiny_512MB.dtb
+
 
 dtb-$(CONFIG_ARCH_R9A07G044) += r9a07g044c2-smarc.dtb
 dtb-$(CONFIG_ARCH_R9A07G044) += r9a07g044l2-smarc.dtb
+dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-versa_1GB.dtb
 dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-versa_2GB.dtb
+dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-optima_1GB.dtb
+dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-optima_2GB.dtb
 
 dtb-$(CONFIG_ARCH_R9A07G054) += r9a07g054l2-smarc.dtb
 
