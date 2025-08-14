@@ -213,6 +213,7 @@
 		pins = "RIIC1_SDA", "RIIC1_SCL";
 		input-enable;
 	};
+
 	i2c3_pins: i2c3 {
 		pinmux = <RZG2L_PORT_PINMUX(18, 0, 3)>, /* SDA */
 			 <RZG2L_PORT_PINMUX(18, 1, 3)>; /* SCL */
@@ -471,7 +472,7 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			partition@0000000 {
+			partition@0 {
 				label = "u-boot";
 				reg = <0x00000000 0x760000>;
 				read-only;
@@ -484,6 +485,8 @@
 		};
 	};
 };
+
+
 
 &sdhi0 {
 	pinctrl-0 = <&sdhi0_emmc_pins>;

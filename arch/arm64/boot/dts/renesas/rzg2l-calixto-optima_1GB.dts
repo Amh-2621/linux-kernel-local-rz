@@ -426,7 +426,7 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			partition@0000000 {
+			partition@0 {
 				label = "u-boot";
 				reg = <0x00000000 0x760000>;
 				read-only;
