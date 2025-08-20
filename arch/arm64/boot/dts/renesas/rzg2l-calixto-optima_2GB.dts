@@ -6,8 +6,9 @@
  */
 
 /dts-v1/;
-#include "r9a07g044.dtsi"
+#include "r9a07g044l2.dtsi"
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irqc-rzg2l.h>
 #include <dt-bindings/pinctrl/rzg2l-pinctrl.h>
 #include <dt-bindings/regulator/dlg,da9063-regulator.h>
 
@@ -701,7 +702,6 @@
 //	pinctrl-0 = <&du_pins>;
 //	pinctrl-names = "default";
 	status = "okay";
-
 //	ports {
 //		port@0 {
 //			du_out_rgb: endpoint {
@@ -734,14 +734,15 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			port@1 {
-					dsi0_out: endpoint {
-							remote-endpoint = <&panel_in>;
-							data-lanes = <1 2 3 4>;
-					};
+		#address-cells = <1>;
+		#size-cells = <0>;
+		port@1 {
+			
+			dsi0_out: endpoint {
+				data-lanes = <1 2 3 4>;
+				remote-endpoint = <&panel_in>;
 			};
+		};
 	};
 	panel@0 {
 			compatible = "rocktech,hx8394f";
@@ -753,10 +754,10 @@
 			backlight = <&backlight>;
 			status = "okay";
 			port {
-					panel_in: endpoint {
-							remote-endpoint = <&dsi0_out>;
-					};
+				panel_in: endpoint {
+					remote-endpoint = <&dsi0_out>;
 			};
+		};
 	};
 };
 
