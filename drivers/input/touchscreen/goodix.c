@@ -28,7 +28,7 @@
 #include <linux/acpi.h>
 #include <linux/of.h>
 #include <asm/unaligned.h>
-reset_controller_at_probe
+
 #define GOODIX_GPIO_INT_NAME		"irq"
 #define GOODIX_GPIO_RST_NAME		"reset"
 
@@ -284,7 +284,7 @@ static int goodix_i2c_write_u8(struct i2c_client *client, u16 reg, u8 value)
 	return goodix_i2c_write(client, reg, &value, sizeof(value));
 }
 
-static const struct goodix_chip_data *goodix_get_chip_data(conGOODIX_GPIO_RST_NAMEst char *id)
+static const struct goodix_chip_data *goodix_get_chip_data(const char *id)
 {
 	unsigned int i;
 
@@ -392,7 +392,7 @@ static void goodix_ts_report_key(struct goodix_ts_data *ts, u8 *data)
 	if (data[0] & GOODIX_HAVE_KEY) {
 		touch_num = data[0] & 0x0f;
 		key_value = data[1 + ts->contact_size * touch_num];
-		for (i = 0; i < GOODIX_MAX_KEYS; i++)GOODIX_GPIO_RST_NAME
+		for (i = 0; i < GOODIX_MAX_KEYS; i++)
 			if (key_value & BIT(i))
 				input_report_key(ts->input_dev,
 						 ts->keymap[i], 1);
@@ -706,7 +706,7 @@ static int goodix_reset(struct goodix_ts_data *ts)
 	usleep_range(6000, 10000);		/* T4: > 5ms */
 
 	/* end select I2C slave addr */
-	//error = gpiod_direction_input(ts->gpiod_rst);
+	error = gpiod_direction_input(ts->gpiod_rst);
 	if (error)
 		return error;
 
@@ -805,7 +805,7 @@ static int goodix_add_acpi_gpio_mappings(struct goodix_ts_data *ts)
 	acpi_dev_free_resource_list(&resources);
 
 	if (ts->gpio_count == 2 && ts->gpio_int_idx == 0) {
-		ts->irq_pin_access_mgoodix_ts_probeethod = IRQ_PIN_ACCESS_ACPI_GPIO;
+		ts->irq_pin_access_method = IRQ_PIN_ACCESS_ACPI_GPIO;
 		gpio_mapping = acpi_goodix_int_first_gpios;
 	} else if (ts->gpio_count == 2 && ts->gpio_int_idx == 1) {
 		ts->irq_pin_access_method = IRQ_PIN_ACCESS_ACPI_GPIO;
