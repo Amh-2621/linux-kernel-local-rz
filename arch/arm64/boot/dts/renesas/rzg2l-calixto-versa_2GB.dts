@@ -353,17 +353,6 @@
 		};
 	};
 	
-	goodix_pins: goodix_pins {
-		pinmux = <RZG2L_PORT_PINMUX(1, 0, 1)>; /* INTERRUPT */
-//			 <RZG2L_PORT_PINMUX(48, 3, 0)>;  /* RESET */
-        	};
-
-//	gt911-reset-hog {
-//                  gpio-hog;
-//                  reset-gpios = <&pinctrl RZG2L_GPIO(48, 3) GPIO_ACTIVE_LOW>;
-//                  output-high;
-//                  line-name = "gt911-reset";
-//          };
 };
 
 &gpt3 {
@@ -605,7 +594,7 @@
 &i2c1 {
 	pinctrl-0 = <&i2c1_pins>;
 	pinctrl-names = "default";
-        clock-frequency = <400000>;
+        clock-frequency = <100000>;
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "okay";
@@ -613,25 +602,13 @@
 	gt911: gt911@14 {
 		compatible = "goodix,gt911";
        	        reg = <0x14>;
-       	        pinctrl-names = "default";
-        	pinctrl-0 = <&goodix_pins>;
         	interrupt-parent = <&pinctrl>;
-        	interrupts = <RZG2L_GPIO(1, 0) IRQ_TYPE_LEVEL_LOW>; /* interrupt no, high to low edge triggered */
-        	irq-gpios = <&pinctrl RZG2L_GPIO(1, 0) GPIO_ACTIVE_LOW>;
-//        	reset-gpios = <&pinctrl RZG2L_GPIO(48, 3) GPIO_ACTIVE_HIGH>;
+        	interrupts = <RZG2L_GPIO(1, 0) 0>; /* interrupt no, high to low edge triggered */
+        	irq-gpios = <&pinctrl RZG2L_GPIO(1, 0) 0>;
+		reset-gpios = <&pinctrl RZG2L_GPIO(48, 3) GPIO_ACTIVE_HIGH>;
         	touchscreen-size-x = <720>;
         	touchscreen-size-y = <1280>;
-
-//              interrupt-parent = <&pinctrl>;
-//		interrupts = <RZG2L_GPIO(1, 0) IRQ_TYPE_LEVEL_LOW>;
-//		interrupt-controller;
-//		gpio-controller;
-//              irq-gpios = <&pinctrl RZG2L_GPIO(1, 0) GPIO_ACTIVE_LOW>;
-//              reset-assert-us = <10000>;
-//		reset-deassert-us = <10000>;
-//		reset-gpios = <&pinctrl RZG2L_GPIO(48, 3) GPIO_ACTIVE_LOW>;
-
-                
+		touchscreen-max-fingers = <5>;           
 
 	};
 	
