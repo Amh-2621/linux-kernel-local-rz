@@ -82,7 +82,10 @@ dtb-$(CONFIG_ARCH_R9A07G043) += r9a07g043u11-smarc.dtb
 
 dtb-$(CONFIG_ARCH_R9A07G044) += r9a07g044c2-smarc.dtb
 dtb-$(CONFIG_ARCH_R9A07G044) += r9a07g044l2-smarc.dtb
+dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-optima.dtb
 dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-optima_2GB.dtb
+dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-versa.dtb
+dtb-$(CONFIG_ARCH_R9A07G044) += rzg2l-calixto-versa_2GB.dtb
 
 dtb-$(CONFIG_ARCH_R9A07G054) += r9a07g054l2-smarc.dtb
 
